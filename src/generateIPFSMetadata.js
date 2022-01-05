@@ -4,7 +4,46 @@ const ipfsClient = require("ipfs-http-client");
 const imageDir =  "./images"
 const ipfsImageDir = "./ipfs-data/images"
 
-async function generateIPFSImage(client) {
+const addIPFSPrefix = (cid) => {
+  return `https://ipfs.io/ipfs/${cid}`;
+};
+
+const generateIPFSImageAndMetadata = async (client, description) => {
+  fs.readdir(imageDir, async function (err, files) {
+
+    //upload image to IPFS and get CID
+    for (const [index, fileName] of files.entries()) {
+      const fileContent = fs.readFileSync(`./images/${fileName}`);
+      const result = await client.add(fileContent);
+      const cid = result.cid.toString();
+      const imageName = index + 1
+      const imageURI = addIPFSPrefix(cid);
+      console.log(`Image URI of ${imageName} : ${imageURI}`);
+
+      //generate image IPFS
+      fs.writeFileSync(
+        `./ipfs-data/images/${imageName}.json`,
+        JSON.stringify({ URI: imageURI }, null, 1)
+      );
+
+      //generate metadata
+      const metadata = {
+        name: imageName,
+        description: description,
+        image: imageURI
+      }
+
+      fs.writeFileSync(
+        `./ipfs-data/metadata/${index + 1}.json`,
+        JSON.stringify(metadata, null, 3)
+      );
+ 
+    }
+  });
+}
+
+
+async function generateIPFSMetadata(client) {
   let fileContents = []
   fs.readdir(imageDir, async function (err, files) {
     for (const [index, fileName] of files.entries()) {
@@ -17,7 +56,7 @@ async function generateIPFSImage(client) {
         const cid = result.cid.toString();
         const parsedPath = result.path.split('/')[1]
         const path = parsedPath ? parsedPath : result.path
-        fs.writeFileSync(`./ipfs-data/images/${path}.json`, JSON.stringify({cid}));
+        await fs.writeFileSync(`./ipfs-data/images/${path}.json`, JSON.stringify({cid}));
 
         if(parsedPath){
           console.log(`CID of Image ${path} : ${cid}`)
@@ -29,13 +68,6 @@ async function generateIPFSImage(client) {
   });
 }
 
-async function uploadMetadataToIPFS(client) {
-
-  fs.readdir(ipfsImageDir, async function (err, files) {
-
-  })
-}
-
 async function main() {
   const client = ipfsClient.create({
     host: "ipfs.infura.io",
@@ -43,10 +75,10 @@ async function main() {
     protocol: "https",
   });
 
-  await generateIPFSImage(client)
-  // await uploadMetadataToIPFS(client)
+  const description = "Generate IPFS of metadata tools"
 
-  // process.exit(0)
+  await generateIPFSImageAndMetadata(client, description)
+  // await generateIPFSMetadata(client)
 }
 
 main();
