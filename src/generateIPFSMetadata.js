@@ -1,6 +1,5 @@
-const fs = require("fs");
+const { promises: fs } = require("fs");
 const ipfsClient = require("ipfs-http-client");
-
 const imageDir = "./images";
 const metadataDir = "./metadata";
 const ipfsImageDir = "./ipfs-data/images";
@@ -10,56 +9,55 @@ const addIPFSPrefix = (cid) => {
   return `https://ipfs.io/ipfs/${cid}`;
 };
 
-const generateIPFSImageAndMetadata = async (client, description) => {
+
+const generateIPFSImage = async (client, description) => {
   console.log("Start generate IPFS Image......")
   try {
-    await fs.readdir(imageDir, async function (err, files) {
+      const fileNames = await fs.readdir(imageDir)
+
       //generage image IPFS
-      for (const [index, fileName] of files.entries()) {
-        const fileContent = fs.readFileSync(`${imageDir}/${fileName}`);
+      for (const [index, fileName] of fileNames.entries()) {
+        const fileContent = await fs.readFile(`${imageDir}/${fileName}`);
         const result = await client.add(fileContent);
         const cid = result.cid.toString();
         const imageName = index + 1;
         const imageURI = addIPFSPrefix(cid);
-        console.log(`URI of Image ${imageName} : ${imageURI}`);
 
         //write image to ipfs json file
-        fs.writeFileSync(
+        await fs.writeFile(
           `${ipfsImageDir}/${imageName}.json`,
-          JSON.stringify({ URI: imageURI }, null, 1)
+          JSON.stringify({ URI: imageURI }, null, 2)
         );
 
-        //write metadata to json file
+        //write raw metadata to json file
         const metadata = {
           name: imageName,
           description: description,
           image: imageURI,
         };
 
-        fs.writeFileSync(
+        await fs.writeFile(
           `${metadataDir}/${index + 1}.json`,
-          JSON.stringify(metadata, null, 3)
+          JSON.stringify(metadata, null, 2)
         );
       }
-    });
-
-    Promise.resolve()
   } catch (error) {
     return console.log(`error : `, error);
   }
 };
 
-async function generateIPFSMetadata(client) {
+const generateIPFSMetadata = async (client) => {
   console.log("Start generate IPFS Metadata......")
+  const fileNames = await fs.readdir(metadataDir)
   let fileContents = [];
 
   try {
-    await fs.readdir(metadataDir, async function (err, files) {
       //prepare all medata file contents
-      for (const [index, fileName] of files.entries()) {
-        const fileContent = fs.readFileSync(`./${metadataDir}/${fileName}`);
+      for (const [index, fileName] of fileNames.entries()) {
+        const fileContent = await fs.readFile(`./${metadataDir}/${fileName}`);
         fileContents.push({ path: `/tmp/${index + 1}`, content: fileContent });
       }
+
 
       // generate IPFS root URI with addAll()
       for await (const result of client.addAll(fileContents)) {
@@ -74,19 +72,18 @@ async function generateIPFSMetadata(client) {
         }
 
        //write IPFS metadata to json file
-        await fs.writeFileSync(
+        await fs.writeFile(
           `${ipfsMetadataDir}/${path}.json`,
           JSON.stringify({ URI })
         );
       }
-    });
-    Promise.resolve()
+      console.log("Done ✨✨✨")
   } catch (error) {
     return console.log(`error : `, error);
   }
 }
 
-async function main() {
+async function startGenerate() {
   const client = ipfsClient.create({
     host: "ipfs.infura.io",
     port: 5001,
@@ -95,9 +92,9 @@ async function main() {
 
   const description = "Generate IPFS of metadata tools";
 
-  await generateIPFSImageAndMetadata(client, description)
+  await generateIPFSImage(client, description)
   await generateIPFSMetadata(client);
   
 }
 
-main();
+startGenerate();
