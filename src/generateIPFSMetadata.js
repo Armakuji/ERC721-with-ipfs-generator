@@ -6,7 +6,7 @@ const ipfsImageDir = "./assets/ipfs-data/images";
 const ipfsMetadataDir = "./assets/ipfs-data/metadata";
 
 const addIPFSPrefix = (cid) => {
-  return `https://ipfs.io/ipfs/${cid}`;
+  return `https://ipfs.io/ipfs/${cid}/`;
 };
 
 
@@ -20,7 +20,7 @@ const generateIPFSImage = async (client, description) => {
         const fileContent = await fs.readFile(`${imageDir}/${fileName}`);
         const result = await client.add(fileContent);
         const cid = result.cid.toString();
-        const imageName = index + 1;
+        const imageName = index;
         const imageURI = addIPFSPrefix(cid);
 
         //write image to ipfs json file
@@ -37,7 +37,7 @@ const generateIPFSImage = async (client, description) => {
         };
 
         await fs.writeFile(
-          `${metadataDir}/${index + 1}.json`,
+          `${metadataDir}/${index}.json`,
           JSON.stringify(metadata, null, 2)
         );
       }
@@ -55,7 +55,7 @@ const generateIPFSMetadata = async (client) => {
       //prepare all medata file contents
       for (const [index, fileName] of fileNames.entries()) {
         const fileContent = await fs.readFile(`./${metadataDir}/${fileName}`);
-        fileContents.push({ path: `/tmp/${index + 1}`, content: fileContent });
+        fileContents.push({ path: `/tmp/${index}`, content: fileContent });
       }
 
 
@@ -64,17 +64,18 @@ const generateIPFSMetadata = async (client) => {
         const URI = result.cid.toString();
         const parsedRootPath = result.path.split("/")[1];
         const path = parsedRootPath ? parsedRootPath : result.path;
+        const metadataURI = addIPFSPrefix(URI);
 
         if (parsedRootPath) {
-          console.log(`URI of Metadata ${path} : ${URI}`);
+          console.log(`URI of Metadata ${path} : ${metadataURI}`);
         } else {
-          console.log(`URI of TMP folder : ${URI}`);
+          console.log(`URI of TMP folder : ${metadataURI}`);
         }
 
        //write IPFS metadata to json file
         await fs.writeFile(
           `${ipfsMetadataDir}/${path}.json`,
-          JSON.stringify({ URI })
+          JSON.stringify({ metadataURI })
         );
       }
       console.log("Done ✨✨✨")

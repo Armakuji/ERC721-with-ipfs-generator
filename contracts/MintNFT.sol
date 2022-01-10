@@ -11,7 +11,15 @@ contract MintToken is ERC721, ERC721Enumerable, Ownable {
 
     Counters.Counter private _tokenIdCounter;
 
-    constructor() ERC721("MintToken", "MTK") {}
+    string _baseURIextended;
+
+    constructor(
+        string memory name,
+        string memory symbol,
+        string memory initBaseURI
+    ) ERC721(name, symbol) {
+        setBaseURI(initBaseURI);
+    }
 
     function safeMint(address to) public onlyOwner {
         uint256 tokenId = _tokenIdCounter.current();
@@ -19,12 +27,22 @@ contract MintToken is ERC721, ERC721Enumerable, Ownable {
         _safeMint(to, tokenId);
     }
 
+    function setBaseURI(string memory newBaseURI) public onlyOwner {
+        _baseURIextended = newBaseURI;
+    }
+
+    //internal override baseURI
+    function _baseURI() internal view virtual override returns(string memory){
+        return _baseURIextended;
+    }
+
     // The following functions are overrides required by Solidity.
 
-    function _beforeTokenTransfer(address from, address to, uint256 tokenId)
-        internal
-        override(ERC721, ERC721Enumerable)
-    {
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 tokenId
+    ) internal override(ERC721, ERC721Enumerable) {
         super._beforeTokenTransfer(from, to, tokenId);
     }
 
