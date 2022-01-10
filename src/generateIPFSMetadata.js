@@ -1,9 +1,9 @@
 const { promises: fs } = require("fs");
 const ipfsClient = require("ipfs-http-client");
-const imageDir = "./images";
-const metadataDir = "./metadata";
-const ipfsImageDir = "./ipfs-data/images";
-const ipfsMetadataDir = "./ipfs-data/metadata";
+const imageDir = "./assets/images";
+const metadataDir = "./assets/metadata";
+const ipfsImageDir = "./assets/ipfs-data/images";
+const ipfsMetadataDir = "./assets/ipfs-data/metadata";
 
 const addIPFSPrefix = (cid) => {
   return `https://ipfs.io/ipfs/${cid}`;
