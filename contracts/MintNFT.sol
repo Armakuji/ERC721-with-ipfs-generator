@@ -11,6 +11,8 @@ contract MintToken is ERC721, ERC721Enumerable, Ownable {
 
     Counters.Counter private _tokenIdCounter;
 
+    uint256 public constant MAX_SUPPLY = 3;
+    uint256 private constant MINT_COST = 0.1 ether;
     string _baseURIextended;
 
     constructor(
@@ -21,16 +23,24 @@ contract MintToken is ERC721, ERC721Enumerable, Ownable {
         setBaseURI(initBaseURI);
     }
 
-    function safeMint(address to) public onlyOwner {
-        uint256 tokenId = _tokenIdCounter.current();
-        _tokenIdCounter.increment();
-        _safeMint(to, tokenId);
-    }
-
     function setBaseURI(string memory newBaseURI) public onlyOwner {
         _baseURIextended = newBaseURI;
     }
 
+    function mint(address to) public payable {
+        uint256 tokenId = _tokenIdCounter.current();
+        require(tokenId < MAX_SUPPLY, 'Exceed the maximum supply');
+        require(msg.value >= MINT_COST, 'Not enough funds');
+        _tokenIdCounter.increment();
+        _safeMint(to, tokenId);
+    }
+
+    function withdraw() public onlyOwner {
+        uint balance = address(this).balance;
+        payable(msg.sender).transfer(balance);
+    }
+
+   
     //internal override baseURI
     function _baseURI() internal view virtual override returns(string memory){
         return _baseURIextended;

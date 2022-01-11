@@ -2,7 +2,6 @@ const { promises: fs } = require("fs");
 const ipfsClient = require("ipfs-http-client");
 const imageDir = "./assets/images";
 const metadataDir = "./assets/metadata";
-const ipfsImageDir = "./assets/ipfs-data/images";
 const ipfsMetadataDir = "./assets/ipfs-data/metadata";
 
 const addIPFSPrefix = (cid) => {
@@ -22,12 +21,6 @@ const generateIPFSImage = async (client, description) => {
         const cid = result.cid.toString();
         const imageName = index;
         const imageURI = addIPFSPrefix(cid);
-
-        //write image to ipfs json file
-        await fs.writeFile(
-          `${ipfsImageDir}/${imageName}.json`,
-          JSON.stringify({ URI: imageURI }, null, 2)
-        );
 
         //write raw metadata to json file
         const metadata = {
@@ -75,7 +68,7 @@ const generateIPFSMetadata = async (client) => {
        //write IPFS metadata to json file
         await fs.writeFile(
           `${ipfsMetadataDir}/${path}.json`,
-          JSON.stringify({ metadataURI })
+          JSON.stringify({ URI:metadataURI })
         );
       }
       console.log("Done ✨✨✨")
