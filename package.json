@@ -2,5 +2,9 @@
   "dependencies": {
     "@openzeppelin/contracts": "^4.4.1",
     "ipfs-http-client": "^55.0.0"
+  },
+  "scripts": {
+    "generate_raw_metadata": "node src/generateRawMetadata.js",
+    "generate_ipfs_metadata": "node src/generateIPFSMetadata.js"
   }
 }
