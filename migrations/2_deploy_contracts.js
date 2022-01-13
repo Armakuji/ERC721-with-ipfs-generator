@@ -9,5 +9,5 @@ const IPFS_METADATA = JSON.parse(FILE_DATA)
 const URI = IPFS_METADATA.URI
 
 module.exports = async function (deployer) {
-    deployer.deploy(MintNFT, 'MintNFT', 'MNFT', URI);
+    deployer.deploy(MintNFT, 'Mint NFT Contract', 'MNFT', URI);
 }

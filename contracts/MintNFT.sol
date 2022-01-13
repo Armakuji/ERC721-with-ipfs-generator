@@ -12,7 +12,7 @@ contract MintNFT is ERC721, ERC721Enumerable, Ownable {
     Counters.Counter private _tokenIdCounter;
 
     uint256 public constant MAX_SUPPLY = 3;
-    uint256 private constant MINT_COST = 0.1 ether;
+    uint256 public constant MINT_COST = 0.1 ether;
     string _baseURIextended;
 
     constructor(
